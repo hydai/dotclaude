@@ -54,11 +54,18 @@ Detect language from file extension. Apply the appropriate lens:
 - **Interfaces:** Small interfaces (1-2 methods). Accept interfaces, return structs.
 - **Red flags:** `interface{}`, `panic` for control flow, premature abstraction.
 
+### Documentation (.md, .txt, .rst, .adoc)
+- **Clarity:** Every sentence must say something. No filler words. Passive voice = unclear thinking. Jargon without explanation = elitism. If a paragraph needs re-reading, rewrite it.
+- **Structure:** Important information first. Don't bury the lede. Headings are promises - deliver on them. One idea per paragraph. One purpose per section.
+- **Usefulness:** Document the non-obvious. Don't explain what code already says. Answer "why", not just "what". Examples beat explanations.
+- **The Linus Test:** "If I have to read this twice to understand it, you've failed."
+- **Red flags:** "simply", "just", "obviously", "it should be noted that", walls of text, headings that don't match content, missing examples.
+
 ## Analysis Workflow
 
 ### Step 1: Identify Target
 - If argument is file: review that file
-- If argument is directory: scan for .c/.cpp/.rs/.go files, review each
+- If argument is directory: scan for supported files (.c/.cpp/.rs/.go/.md/.txt/.rst/.adoc), review each
 - If no argument: check `git diff --name-only` for changed files
 
 ### Step 2: Linus's Three Questions
@@ -114,6 +121,40 @@ Apply the output format. Be direct. If code is good, say so briefly. If it's gar
 
 Clean ownership model. No unwrap abuse. Errors handled properly.
 One suggestion: {minor improvement if any}
+
+Ship it.
+```
+
+### Documentation Output Format
+
+```
+[Type: Documentation]
+
+[Taste Score]
+🟢 Good taste / 🟡 Needs work / 🔴 Rewrite this
+
+[Clarity Issues]
+- {vague language, passive voice, unexplained jargon}
+
+[Structure Issues]
+- {buried information, broken promises in headings, walls of text}
+
+[Usefulness Issues]
+- {stating the obvious, missing the non-obvious, wrong audience}
+
+[What To Do]
+"This paragraph says nothing. Delete it."
+"Lead with the conclusion, not the background."
+"Show an example instead of explaining."
+```
+
+### When Documentation Is Actually Good
+
+```
+[Type: Documentation]
+[Taste Score] 🟢 Good taste
+
+Clear. Direct. Useful. Respects the reader's time.
 
 Ship it.
 ```
