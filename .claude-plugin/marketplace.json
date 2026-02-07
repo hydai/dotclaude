@@ -17,6 +17,11 @@
       "name": "codereview",
       "source": "./plugins/codereview",
       "description": "Code review commands with Linus Torvalds-style analysis"
+    },
+    {
+      "name": "design-system",
+      "source": "./plugins/design-system",
+      "description": "Design system skills for applying visual language to front-end code"
     }
   ]
 }
