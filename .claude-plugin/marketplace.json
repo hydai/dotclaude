@@ -8,12 +8,7 @@
     "pluginRoot": "./plugins"
   },
   "plugins": [
-    {
-      "name": "example",
-      "source": "./plugins/example",
-      "description": "Example slash command plugin"
-    },
-    {
+{
       "name": "codereview",
       "source": "./plugins/codereview",
       "description": "Code review commands with Linus Torvalds-style analysis"

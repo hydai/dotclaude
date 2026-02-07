@@ -32,7 +32,6 @@ plugins/
 
 | Plugin | Components |
 |:-------|:-----------|
-| `example` | `hello` command |
 | `codereview` | `linus` command |
 | `design-system` | `linear-dark` skill |
 

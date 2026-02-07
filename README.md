@@ -20,14 +20,6 @@ Design system skills for applying consistent visual language to front-end projec
 |:----------|:-----|:------------|
 | `linear-dark` | Skill | Activates automatically when applying a dark-mode design system (Linear/Vercel-style) to front-end code. Provides color tokens, typography, component patterns, animation specs, and accessibility guidelines. |
 
-### example
-
-A starter plugin to demonstrate the pattern.
-
-| Component | Type | Description |
-|:----------|:-----|:------------|
-| `/example:hello` | Command | Simple greeting command — use as a template |
-
 ## Installation
 
 Add this marketplace and install any plugin:
