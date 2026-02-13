@@ -1,0 +1,5 @@
+{
+  "name": "release-automation",
+  "description": "Skills for setting up automated release workflows in Rust projects",
+  "version": "1.0.0"
+}

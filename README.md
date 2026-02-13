@@ -20,6 +20,14 @@ Design system skills for applying consistent visual language to front-end projec
 |:----------|:-----|:------------|
 | `linear-dark` | Skill | Activates automatically when applying a dark-mode design system (Linear/Vercel-style) to front-end code. Provides color tokens, typography, component patterns, animation specs, and accessibility guidelines. |
 
+### release-automation
+
+Skills for setting up automated release workflows in Rust projects.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `knope-rust` | Skill | Activates when setting up knope release automation for Rust projects. Provides knope.toml configuration, GitHub Actions workflow templates, and pitfall avoidance. |
+
 ## Installation
 
 Add this marketplace and install any plugin:
@@ -28,6 +36,7 @@ Add this marketplace and install any plugin:
 /plugin marketplace add /path/to/dotclaude
 /plugin install codereview@dotclaude
 /plugin install design-system@dotclaude
+/plugin install release-automation@dotclaude
 ```
 
 ## Adding a Plugin

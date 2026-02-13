@@ -17,6 +17,11 @@
       "name": "design-system",
       "source": "./plugins/design-system",
       "description": "Design system skills for applying visual language to front-end code"
+    },
+    {
+      "name": "release-automation",
+      "source": "./plugins/release-automation",
+      "description": "Skills for setting up automated release workflows in Rust projects"
     }
   ]
 }
