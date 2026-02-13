@@ -26,7 +26,7 @@ Skills for setting up automated release workflows in Rust projects.
 
 | Component | Type | Description |
 |:----------|:-----|:------------|
-| `knope-rust` | Skill | Activates when setting up knope release automation for Rust projects. Provides knope.toml configuration, GitHub Actions workflow templates, and pitfall avoidance. |
+| `knope-rust` | Skill | Activates when setting up knope release automation for Rust projects. Provides knope.toml configuration, SHA-pinned GitHub Actions workflow templates, multi-platform build matrix, crates.io OIDC publishing, and pitfall avoidance for knope 0.22.2. |
 
 ## Installation
 
