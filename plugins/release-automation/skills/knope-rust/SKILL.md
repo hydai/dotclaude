@@ -48,6 +48,14 @@ type = "PrepareRelease"
 type = "CreatePullRequest"
 base = "main"
 
+[workflows.steps.title]
+template = "chore: release {version}"
+variables = { "{version}" = "Version" }
+
+[workflows.steps.body]
+template = "{changelog}"
+variables = { "{changelog}" = "ChangelogEntry" }
+
 [[workflows]]
 name = "release"
 
@@ -114,6 +122,7 @@ Pin via the `version` parameter: `version: 0.22.1`
 - **Wrong version source** — For Tauri apps, `versioned_files` must point to the Tauri crate's `Cargo.toml`, not the workspace root. Tauri reads its version from the crate, not from `tauri.conf.json`.
 - **`download-artifact@v6`** — Use `@v5` instead. The v6 upload is cross-compatible with v5 download; using v6 for both can cause issues.
 - **Skipping bootstrap** — The first `prepare-release` run won't create a PR unless there are conventional commits after a release tag. Bootstrap by creating a `v0.1.0` tag on main first.
+- **Bare `CreatePullRequest` without `title`/`body`** — Knope 0.22.1 requires structured `title` and `body` objects with `template` and `variables`. Omitting them causes `knope prepare-release` to fail.
 
 ## Reference Guide
 

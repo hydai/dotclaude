@@ -104,3 +104,31 @@ permissions:
 Without `pull-requests: write`, knope cannot create the release PR. Without `contents: write`, it cannot push the changelog updates.
 
 The `release` workflow only needs `contents: write` (to create the GitHub Release).
+
+## 9. CreatePullRequest Requires title and body Fields
+
+Knope 0.22.1 requires structured `title` and `body` objects on `CreatePullRequest` steps.
+
+**Wrong — bare step will fail at runtime:**
+```toml
+[[workflows.steps]]
+type = "CreatePullRequest"
+base = "main"
+```
+
+**Correct:**
+```toml
+[[workflows.steps]]
+type = "CreatePullRequest"
+base = "main"
+
+[workflows.steps.title]
+template = "chore: release {version}"
+variables = { "{version}" = "Version" }
+
+[workflows.steps.body]
+template = "{changelog}"
+variables = { "{changelog}" = "ChangelogEntry" }
+```
+
+Available variables: `Version` (computed next version), `ChangelogEntry` (generated changelog for this release).
