@@ -35,6 +35,7 @@ plugins/
 | `codereview` | `linus` command |
 | `design-system` | `linear-dark` skill |
 | `release-automation` | `knope-rust` skill |
+| `testing` | `vision-verify` skill |
 
 ## Adding a New Plugin
 

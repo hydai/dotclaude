@@ -22,6 +22,11 @@
       "name": "release-automation",
       "source": "./plugins/release-automation",
       "description": "Skills for setting up automated release workflows in Rust projects"
+    },
+    {
+      "name": "testing",
+      "source": "./plugins/testing",
+      "description": "Skills for automated visual verification of web applications during test authoring"
     }
   ]
 }
