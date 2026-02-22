@@ -28,6 +28,14 @@ Skills for setting up automated release workflows in Rust projects.
 |:----------|:-----|:------------|
 | `knope-rust` | Skill | Activates when setting up knope release automation for Rust projects. Provides knope.toml configuration, SHA-pinned GitHub Actions workflow templates, multi-platform build matrix, crates.io OIDC publishing, and pitfall avoidance for knope 0.22.2. |
 
+### testing
+
+Skills for automated visual verification of web applications during test authoring.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `vision-verify` | Skill | Activates when writing or modifying Playwright tests involving UI interactions, visual behavior, animations, or layout. Records browser sessions and analyzes them with Gemini's vision model to catch visual bugs that functional tests miss. |
+
 ## Installation
 
 Add this marketplace and install any plugin:
