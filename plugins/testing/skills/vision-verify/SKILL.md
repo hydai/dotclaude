@@ -59,7 +59,7 @@ Check the file size before proceeding — the default limit is 20MB. If exceeded
 Construct and execute the analysis command using the stdin pipe pattern:
 
 ```bash
-echo "You are reviewing a screen recording of a web application test.
+echo 'You are reviewing a screen recording of a web application test.
 
 ## Test Description
 <what the test does>
@@ -76,13 +76,13 @@ echo "You are reviewing a screen recording of a web application test.
 ## Output Format
 Respond with JSON:
 {
-  \"verdict\": \"pass|fail|warning\",
-  \"summary\": \"one-sentence summary\",
-  \"details\": [{\"category\": \"layout|visual-regression|behavior|accessibility\", \"description\": \"...\", \"severity\": \"critical|major|minor\", \"timestamp\": \"0:05-0:08\"}],
-  \"suggestions\": [\"actionable next steps\"]
+  "verdict": "pass|fail|warning",
+  "summary": "one-sentence summary",
+  "details": [{"category": "layout|visual-regression|behavior|accessibility", "description": "...", "severity": "critical|major|minor", "timestamp": "0:05-0:08"}],
+  "suggestions": ["actionable next steps"]
 }
 
-Analyze this test recording: @<video_path>" | gemini -m gemini-3-pro-preview -y
+Analyze this test recording: @<video_path>' | gemini -m gemini-3-pro-preview -y
 ```
 
 **CRITICAL:** Always pipe the prompt to stdin with the `@`-prefixed file reference. Do NOT use the `-p` flag — it does not work correctly with Gemini CLI's vision processing. The `-y` flag is required to auto-confirm.
@@ -121,10 +121,10 @@ Visual verification is advisory only. Never block or fail the test suite based o
 ### CLI Invocation Pattern
 
 ```bash
-echo "<prompt with @video_path at end>" | gemini -m gemini-3-pro-preview -y
+echo '<prompt with @video_path at end>' | gemini -m gemini-3-pro-preview -y
 ```
 
-Always use stdin pipe. Never use `-p`. Always include `-y`.
+Always use stdin pipe with single quotes. Never use `-p`. Always include `-y`.
 
 ### Result Schema
 

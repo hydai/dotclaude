@@ -121,7 +121,7 @@ Error: Model 'gemini-3-pro-preview' not found or quota exceeded.
 
 ### 4. `file-too-large`
 
-**Detection:** File size check performed before submission. Default limit is 20MB. If `os.path.getsize(video_path) > 20 * 1024 * 1024`, the file exceeds the limit.
+**Detection:** File size check performed before submission. Default limit is 20MB. Check with `wc -c < video_path` and compare against 20971520 bytes (20 * 1024 * 1024).
 
 **Example message:**
 ```
@@ -206,16 +206,12 @@ Gemini response is not valid JSON or does not match the expected result schema.
 ```json
 {
   "verdict": "warning",
-  "summary": "Visual analysis returned an unparseable response. Manual review required.",
-  "details": [
-    {
-      "category": "parse-error",
-      "description": "<raw Gemini output here>",
-      "severity": "minor",
-      "timestamp": "N/A"
-    }
-  ],
-  "suggestions": ["Review the raw Gemini output manually to determine if visual issues were detected."]
+  "summary": "Visual analysis returned an unparseable response. Raw output included below for manual review.",
+  "details": [],
+  "suggestions": [
+    "Review the raw Gemini output below to determine if visual issues were detected.",
+    "<raw Gemini output here>"
+  ]
 }
 ```
 
@@ -225,7 +221,7 @@ Gemini response is not valid JSON or does not match the expected result schema.
 
 ### 7. `empty-video`
 
-**Detection:** The video file exists at the expected path but has 0 bytes or 0 duration. Check file size: `os.path.getsize(video_path) == 0`.
+**Detection:** The video file exists at the expected path but has 0 bytes or 0 duration. Check with `[ -s video_path ]` (returns false if empty).
 
 **Example message:**
 ```
