@@ -27,6 +27,11 @@
       "name": "testing",
       "source": "./plugins/testing",
       "description": "Skills for automated visual verification of web applications during test authoring"
+    },
+    {
+      "name": "dev-journal",
+      "source": "./plugins/dev-journal",
+      "description": "Skills for keeping running engineering notes during implementation — decisions, deviations, tradeoffs, and followups"
     }
   ]
 }

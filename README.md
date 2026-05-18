@@ -36,6 +36,14 @@ Skills for automated visual verification of web applications during test authori
 |:----------|:-----|:------------|
 | `vision-verify` | Skill | Activates when writing or modifying Playwright tests involving UI interactions, visual behavior, animations, or layout. Records browser sessions and analyzes them with Gemini's vision model to catch visual bugs that functional tests miss. |
 
+### dev-journal
+
+Skills for keeping running engineering notes during implementation — decisions, deviations, tradeoffs, and followups.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `implementation-notes` | Skill | Activates when implementing a SPEC/PLAN, building a multi-step feature, or when the user asks to keep a running log. Maintains an `implementation-notes.md` (or `.html`) file alongside the code, capturing decisions outside the spec, deviations from spec, tradeoffs, open questions, and followups — written *while* the work happens, not after. |
+
 ## Installation
 
 Add this marketplace and install any plugin:
@@ -45,6 +53,8 @@ Add this marketplace and install any plugin:
 /plugin install codereview@dotclaude
 /plugin install design-system@dotclaude
 /plugin install release-automation@dotclaude
+/plugin install testing@dotclaude
+/plugin install dev-journal@dotclaude
 ```
 
 ## Adding a Plugin

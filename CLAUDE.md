@@ -36,6 +36,7 @@ plugins/
 | `design-system` | `linear-dark` skill |
 | `release-automation` | `knope-rust` skill |
 | `testing` | `vision-verify` skill |
+| `dev-journal` | `implementation-notes` skill |
 
 ## Adding a New Plugin
 
