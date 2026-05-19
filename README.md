@@ -52,6 +52,14 @@ Skills for switching perspectives and reasoning through problems using establish
 |:----------|:-----|:------------|
 | `perspective` | Skill | Activates when the user asks to switch perspectives or think from a specific thinker's viewpoint. Loads one of ten distilled "thinking operating systems" (Elon Musk, Richard Feynman, Charlie Munger, Naval Ravikant, Steve Jobs, Nassim Taleb, Ilya Sutskever, Andrej Karpathy, Paul Graham, Donald Trump) and responds in that persona. Adapted from [nuwa-skill](https://github.com/alchaincyf/nuwa-skill) (MIT). |
 
+### writing-tools
+
+Skills for writing well — removing AI writing patterns with bilingual (English + Chinese) audit support.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `humanly` | Skill | Activates when reviewing or rewriting text to remove AI tells (or 去 AI 味 / 潤稿 in Chinese). Three modes (pre-write, review, detect) with severity tiers (P0/P1/P2), context-profile tolerance, and 5-dimension scoring. References cover patterns, word tables, and cheatsheets in both English and Traditional Chinese. Based on [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) and [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing) (MIT). |
+
 ## Installation
 
 Add this marketplace and install any plugin:
@@ -64,6 +72,7 @@ Add this marketplace and install any plugin:
 /plugin install testing@dotclaude
 /plugin install dev-journal@dotclaude
 /plugin install thinking-tools@dotclaude
+/plugin install writing-tools@dotclaude
 ```
 
 ## Adding a Plugin

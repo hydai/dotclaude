@@ -38,6 +38,7 @@ plugins/
 | `testing` | `vision-verify` skill |
 | `dev-journal` | `implementation-notes` skill |
 | `thinking-tools` | `perspective` skill |
+| `writing-tools` | `humanly` skill |
 
 ## Adding a New Plugin
 

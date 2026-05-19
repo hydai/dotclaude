@@ -37,6 +37,11 @@
       "name": "thinking-tools",
       "source": "./plugins/thinking-tools",
       "description": "Skills for switching perspectives and reasoning through problems using established mental models"
+    },
+    {
+      "name": "writing-tools",
+      "source": "./plugins/writing-tools",
+      "description": "Skills for writing well — removing AI writing patterns with bilingual (English + Chinese) audit support"
     }
   ]
 }
