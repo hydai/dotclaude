@@ -32,6 +32,11 @@
       "name": "dev-journal",
       "source": "./plugins/dev-journal",
       "description": "Skills for keeping running engineering notes during implementation — decisions, deviations, tradeoffs, and followups"
+    },
+    {
+      "name": "thinking-tools",
+      "source": "./plugins/thinking-tools",
+      "description": "Skills for switching perspectives and reasoning through problems using established mental models"
     }
   ]
 }

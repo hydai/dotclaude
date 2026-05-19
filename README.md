@@ -44,6 +44,14 @@ Skills for keeping running engineering notes during implementation — decisions
 |:----------|:-----|:------------|
 | `implementation-notes` | Skill | Activates when implementing a SPEC/PLAN, building a multi-step feature, or when the user asks to keep a running log. Maintains an `implementation-notes.md` (or `.html`) file alongside the code, capturing decisions outside the spec, deviations from spec, tradeoffs, open questions, and followups — written *while* the work happens, not after. |
 
+### thinking-tools
+
+Skills for switching perspectives and reasoning through problems using established mental models.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `perspective` | Skill | Activates when the user asks to switch perspectives or think from a specific thinker's viewpoint. Loads one of ten distilled "thinking operating systems" (Elon Musk, Richard Feynman, Charlie Munger, Naval Ravikant, Steve Jobs, Nassim Taleb, Ilya Sutskever, Andrej Karpathy, Paul Graham, Donald Trump) and responds in that persona. Adapted from [nuwa-skill](https://github.com/alchaincyf/nuwa-skill) (MIT). |
+
 ## Installation
 
 Add this marketplace and install any plugin:
@@ -55,6 +63,7 @@ Add this marketplace and install any plugin:
 /plugin install release-automation@dotclaude
 /plugin install testing@dotclaude
 /plugin install dev-journal@dotclaude
+/plugin install thinking-tools@dotclaude
 ```
 
 ## Adding a Plugin

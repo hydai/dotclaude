@@ -37,6 +37,7 @@ plugins/
 | `release-automation` | `knope-rust` skill |
 | `testing` | `vision-verify` skill |
 | `dev-journal` | `implementation-notes` skill |
+| `thinking-tools` | `perspective` skill |
 
 ## Adding a New Plugin
 
