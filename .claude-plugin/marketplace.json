@@ -42,6 +42,11 @@
       "name": "writing-tools",
       "source": "./plugins/writing-tools",
       "description": "Skills for writing well — removing AI writing patterns with bilingual (English + Chinese) audit support"
+    },
+    {
+      "name": "agent-workflow",
+      "source": "./plugins/agent-workflow",
+      "description": "Skills for packaging context across agent sessions, machines, and tools"
     }
   ]
 }

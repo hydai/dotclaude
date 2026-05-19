@@ -60,6 +60,14 @@ Skills for writing well — removing AI writing patterns with bilingual (English
 |:----------|:-----|:------------|
 | `humanly` | Skill | Activates when reviewing or rewriting text to remove AI tells (or 去 AI 味 / 潤稿 in Chinese). Three modes (pre-write, review, detect) with severity tiers (P0/P1/P2), context-profile tolerance, and 5-dimension scoring. References cover patterns, word tables, and cheatsheets in both English and Traditional Chinese. Based on [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) and [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing) (MIT). |
 
+### agent-workflow
+
+Skills for packaging context across agent sessions, machines, and tools.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `handoff` | Skill | Activates on `/handoff` or when the user wants to package current session state for another agent (a fresh Claude Code session, Codex, ChatGPT, or an agent on another machine). Prints a self-contained markdown handoff document inline — no file written, no worktree created — covering goal, current state, next step, decisions, dead ends, environment, and relevant files. |
+
 ## Installation
 
 Add this marketplace and install any plugin:
@@ -73,6 +81,7 @@ Add this marketplace and install any plugin:
 /plugin install dev-journal@dotclaude
 /plugin install thinking-tools@dotclaude
 /plugin install writing-tools@dotclaude
+/plugin install agent-workflow@dotclaude
 ```
 
 ## Adding a Plugin

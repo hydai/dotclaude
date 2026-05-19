@@ -39,6 +39,7 @@ plugins/
 | `dev-journal` | `implementation-notes` skill |
 | `thinking-tools` | `perspective` skill |
 | `writing-tools` | `humanly` skill |
+| `agent-workflow` | `handoff` skill |
 
 ## Adding a New Plugin
 

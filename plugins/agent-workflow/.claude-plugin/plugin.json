@@ -1,0 +1,5 @@
+{
+  "name": "agent-workflow",
+  "description": "Skills for packaging context across agent sessions, machines, and tools",
+  "version": "1.0.0"
+}
