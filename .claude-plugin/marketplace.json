@@ -52,6 +52,11 @@
       "name": "retro-tools",
       "source": "./plugins/retro-tools",
       "description": "Skills for retrospective analysis — conversation retrospectives and post-mortem bug archaeology"
+    },
+    {
+      "name": "gtm-tools",
+      "source": "./plugins/gtm-tools",
+      "description": "Skills for go-to-market strategy — codebase-aware GTM document generation with multi-session interview support"
     }
   ]
 }

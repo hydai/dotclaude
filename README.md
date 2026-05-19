@@ -78,6 +78,14 @@ Skills for retrospective analysis — conversation retrospectives and post-morte
 | `post-mortem` | Skill | Activates when the user says "post-mortem", "trace this bug", or describes a regression that appeared in a specific version. Walks git history to find the introduction commit by first locating the fix commit, then traces the causal chain through diffs and commit messages, and produces a structured markdown report (timeline, root cause, prevention measures). Works with any git repo and default branch. |
 | `second-opinion` | Skill | Activates when the user says "second opinion", "challenge this plan", "adversarial review", or asks for an independent take on a plan or spec. Dispatches the document to Codex CLI (with a clean-context subagent fallback) for a 5-dimension critique (Completeness, Consistency, Clarity, Scope, Feasibility). Findings are advisory — each must be explicitly adopted by the user. |
 
+### gtm-tools
+
+Skills for go-to-market strategy — codebase-aware GTM document generation with multi-session interview support.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `gtm` | Skill | Activates when the user says "gtm", "go to market", "GTM plan", "brand strategy", or asks to generate marketing/positioning documents. Scans the codebase, runs a 5-phase interview (product, audience, competition, brand, channels) across multiple sessions, and produces 4 strategy documents (brand strategy, market landscape, messaging framework, channel playbook) plus a `gtm-state.yaml` for session resume. Templates kept in `references/` for progressive disclosure. |
+
 ## Installation
 
 Add this marketplace and install any plugin:
@@ -93,6 +101,7 @@ Add this marketplace and install any plugin:
 /plugin install writing-tools@dotclaude
 /plugin install agent-workflow@dotclaude
 /plugin install retro-tools@dotclaude
+/plugin install gtm-tools@dotclaude
 ```
 
 ## Adding a Plugin

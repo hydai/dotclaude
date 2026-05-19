@@ -41,6 +41,7 @@ plugins/
 | `writing-tools` | `humanly` skill |
 | `agent-workflow` | `handoff` skill |
 | `retro-tools` | `session-retro`, `post-mortem`, `second-opinion` skills |
+| `gtm-tools` | `gtm` skill |
 
 ## Adding a New Plugin
 
