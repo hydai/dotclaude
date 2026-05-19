@@ -76,6 +76,7 @@ Skills for retrospective analysis — conversation retrospectives and post-morte
 |:----------|:-----|:------------|
 | `session-retro` | Skill | Activates when the user says "session retro", "retrospective", or "review this session". Scans the conversation for corrections, attributes each error to its source (skill, CLAUDE.md, memory, or tool), proposes targeted fixes that persist, and analyzes token efficiency (subagent dispatches, redundant operations, oversized reads). |
 | `post-mortem` | Skill | Activates when the user says "post-mortem", "trace this bug", or describes a regression that appeared in a specific version. Walks git history to find the introduction commit by first locating the fix commit, then traces the causal chain through diffs and commit messages, and produces a structured markdown report (timeline, root cause, prevention measures). Works with any git repo and default branch. |
+| `second-opinion` | Skill | Activates when the user says "second opinion", "challenge this plan", "adversarial review", or asks for an independent take on a plan or spec. Dispatches the document to Codex CLI (with a clean-context subagent fallback) for a 5-dimension critique (Completeness, Consistency, Clarity, Scope, Feasibility). Findings are advisory — each must be explicitly adopted by the user. |
 
 ## Installation
 
