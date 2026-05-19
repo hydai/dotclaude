@@ -39,7 +39,7 @@ plugins/
 | `dev-journal` | `implementation-notes` skill |
 | `thinking-tools` | `perspective` skill |
 | `writing-tools` | `humanly` skill |
-| `agent-workflow` | `handoff` skill |
+| `agent-workflow` | `handoff`, `worktree-handoff` skills |
 | `retro-tools` | `session-retro`, `post-mortem`, `second-opinion` skills |
 | `gtm-tools` | `gtm` skill |
 

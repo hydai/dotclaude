@@ -67,6 +67,7 @@ Skills for packaging context across agent sessions, machines, and tools.
 | Component | Type | Description |
 |:----------|:-----|:------------|
 | `handoff` | Skill | Activates on `/handoff` or when the user wants to package current session state for another agent (a fresh Claude Code session, Codex, ChatGPT, or an agent on another machine). Prints a self-contained markdown handoff document inline — no file written, no worktree created — covering goal, current state, next step, decisions, dead ends, environment, and relevant files. |
+| `worktree-handoff` | Skill | Activates when the user wants to start a new branch with a committed handoff context — "open worktree", "worktree handoff", "create a worktree". Creates a git worktree under `.worktrees/`, discovers or creates a matching plan file (defaults to `docs/plans/`; opts into state-machine mode via `BACKLOG` and `DOING` env vars), appends a timestamped Handoff Context section, commits and pushes, then prints the next-session pickup command. |
 
 ### retro-tools
 
