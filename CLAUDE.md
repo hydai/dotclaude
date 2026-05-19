@@ -40,6 +40,7 @@ plugins/
 | `thinking-tools` | `perspective` skill |
 | `writing-tools` | `humanly` skill |
 | `agent-workflow` | `handoff` skill |
+| `retro-tools` | `session-retro`, `post-mortem` skills |
 
 ## Adding a New Plugin
 

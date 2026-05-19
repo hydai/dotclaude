@@ -68,6 +68,15 @@ Skills for packaging context across agent sessions, machines, and tools.
 |:----------|:-----|:------------|
 | `handoff` | Skill | Activates on `/handoff` or when the user wants to package current session state for another agent (a fresh Claude Code session, Codex, ChatGPT, or an agent on another machine). Prints a self-contained markdown handoff document inline — no file written, no worktree created — covering goal, current state, next step, decisions, dead ends, environment, and relevant files. |
 
+### retro-tools
+
+Skills for retrospective analysis — conversation retrospectives and post-mortem bug archaeology.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `session-retro` | Skill | Activates when the user says "session retro", "retrospective", or "review this session". Scans the conversation for corrections, attributes each error to its source (skill, CLAUDE.md, memory, or tool), proposes targeted fixes that persist, and analyzes token efficiency (subagent dispatches, redundant operations, oversized reads). |
+| `post-mortem` | Skill | Activates when the user says "post-mortem", "trace this bug", or describes a regression that appeared in a specific version. Walks git history to find the introduction commit by first locating the fix commit, then traces the causal chain through diffs and commit messages, and produces a structured markdown report (timeline, root cause, prevention measures). Works with any git repo and default branch. |
+
 ## Installation
 
 Add this marketplace and install any plugin:
@@ -82,6 +91,7 @@ Add this marketplace and install any plugin:
 /plugin install thinking-tools@dotclaude
 /plugin install writing-tools@dotclaude
 /plugin install agent-workflow@dotclaude
+/plugin install retro-tools@dotclaude
 ```
 
 ## Adding a Plugin

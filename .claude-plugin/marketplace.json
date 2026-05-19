@@ -47,6 +47,11 @@
       "name": "agent-workflow",
       "source": "./plugins/agent-workflow",
       "description": "Skills for packaging context across agent sessions, machines, and tools"
+    },
+    {
+      "name": "retro-tools",
+      "source": "./plugins/retro-tools",
+      "description": "Skills for retrospective analysis — conversation retrospectives and post-mortem bug archaeology"
     }
   ]
 }
