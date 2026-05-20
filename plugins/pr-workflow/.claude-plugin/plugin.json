@@ -1,0 +1,5 @@
+{
+  "name": "pr-workflow",
+  "description": "Skills for driving GitHub PR review workflows — Copilot iteration loops, thread bookkeeping",
+  "version": "1.0.0"
+}

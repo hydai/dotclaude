@@ -87,6 +87,14 @@ Skills for go-to-market strategy — codebase-aware GTM document generation with
 |:----------|:-----|:------------|
 | `gtm` | Skill | Activates when the user says "gtm", "go to market", "GTM plan", "brand strategy", or asks to generate marketing/positioning documents. Scans the codebase, runs a 5-phase interview (product, audience, competition, brand, channels) across multiple sessions, and produces 4 strategy documents (brand strategy, market landscape, messaging framework, channel playbook) plus a `gtm-state.yaml` for session resume. Templates kept in `references/` for progressive disclosure. |
 
+### pr-workflow
+
+Skills for driving GitHub PR review workflows — Copilot iteration loops, thread bookkeeping.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `copilot-iterate` | Skill | Activates when the user says "iterate on Copilot review", "address Copilot feedback", "next round of Copilot", "drive PR to convergence", or `/copilot-iterate`. Runs an autonomous loop on an open PR: address each unresolved Copilot thread (fix or push-back), run tests, push, reply and resolve threads, re-add `copilot-pull-request-reviewer` (the only valid re-trigger), poll for the next review with a 10-minute deadline, then classify as CONVERGED (`"generated no new comments"`), ITERATE, or ABORT. Branch guard refuses `main`/`master`/`develop`; max 5 rounds before forced check-in. Repo-agnostic — auto-detects owner/repo/PR from the current branch. |
+
 ## Installation
 
 Add this marketplace and install any plugin:
@@ -103,6 +111,7 @@ Add this marketplace and install any plugin:
 /plugin install agent-workflow@dotclaude
 /plugin install retro-tools@dotclaude
 /plugin install gtm-tools@dotclaude
+/plugin install pr-workflow@dotclaude
 ```
 
 ## Adding a Plugin

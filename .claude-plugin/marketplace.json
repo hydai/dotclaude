@@ -57,6 +57,11 @@
       "name": "gtm-tools",
       "source": "./plugins/gtm-tools",
       "description": "Skills for go-to-market strategy — codebase-aware GTM document generation with multi-session interview support"
+    },
+    {
+      "name": "pr-workflow",
+      "source": "./plugins/pr-workflow",
+      "description": "Skills for driving GitHub PR review workflows — Copilot iteration loops, thread bookkeeping"
     }
   ]
 }

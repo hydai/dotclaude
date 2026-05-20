@@ -42,6 +42,7 @@ plugins/
 | `agent-workflow` | `handoff`, `worktree-handoff` skills |
 | `retro-tools` | `session-retro`, `post-mortem`, `second-opinion` skills |
 | `gtm-tools` | `gtm` skill |
+| `pr-workflow` | `copilot-iterate` skill |
 
 ## Adding a New Plugin
 
