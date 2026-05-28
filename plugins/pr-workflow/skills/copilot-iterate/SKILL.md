@@ -212,7 +212,7 @@ but is not success.
 |:------|:----------|:-------|
 | **CONVERGED** | Latest Copilot review `bodyText` contains `"generated no new comments"` **AND** 0 unresolved Copilot-authored threads | Stop. Print the review URL and "merge-ready". |
 | **ITERATE** | Any unresolved Copilot-authored thread, **OR** body contains `"generated"` with a positive comment count | Start the next round at step 1. |
-| **ABORT** | Body contains `"reviewed 0 of M files"`, `"No files were reviewed"`, an error string, **OR** the 10-min poll timed out | Stop. Print PR URL, last review id, elapsed time. Hand back to the user. |
+| **ABORT** | Body contains `"reviewed 0 of M files"`, `"No files were reviewed"`, an error string, **OR** the 3-attempt poll exhausted (15 min) | Stop. For the poll-exhaustion case, print the **Abort summary**; for other causes, print PR URL + last review id + the matched cause. Hand back to the user. |
 
 Match on `bodyText` (not `body`) — `bodyText` is the rendered plain
 text and avoids markdown splitting the trigger phrase across nodes.
@@ -233,15 +233,24 @@ failed bar aborts the round.
 
 ## Polling pattern
 
-The harness blocks long leading `sleep` calls (>300s flushes the prompt
-cache). Use a short-sleep `until` loop so the loop *is* the wait:
+Three attempts, 5-minute window each — **15 minutes total** before
+the loop concludes Copilot is unresponsive. Each attempt is a
+**separate Bash invocation** so the 10-minute Bash timeout has
+margin; the model orchestrates the three-attempt sequence and breaks
+early on the first attempt that returns a new review id. Within each
+attempt, an `until` loop polls every 30s up to the 5-min window —
+that keeps the wait responsive without violating the harness's
+leading-sleep block.
+
+Per attempt (substitute `$ATTEMPT` 1..3):
 
 ```bash
-DEADLINE=$(( $(date +%s) + 600 ))   # 10-minute timeout
+ATTEMPT=N            # 1, 2, or 3
+DEADLINE=$(( $(date +%s) + 300 ))   # 5-min window
 NEW_REVIEW_ID=0
 until [ "$NEW_REVIEW_ID" -gt "$LATEST_REVIEW_ID" ]; do
   if [ "$(date +%s)" -ge "$DEADLINE" ]; then
-    echo "ABORT: no new Copilot review after 10 min"
+    echo "Attempt $ATTEMPT/3: 5-min window expired, no new Copilot review"
     break
   fi
   sleep 30
@@ -256,11 +265,53 @@ until [ "$NEW_REVIEW_ID" -gt "$LATEST_REVIEW_ID" ]; do
                 | select(.author.login == "copilot-pull-request-reviewer")]
                 | last.databaseId // 0')
 done
+[ "$NEW_REVIEW_ID" -gt "$LATEST_REVIEW_ID" ] \
+  && echo "Attempt $ATTEMPT/3: new review = $NEW_REVIEW_ID"
 ```
+
+Orchestration:
+- New review id detected on any attempt → break, go to **Step 7 — Classify**.
+- Attempt 3 also returns the old id → ABORT via **Abort summary** below.
 
 Do not use `Bash(run_in_background=true)` here — the next round
 genuinely depends on the new review existing; there is no useful
 parallel work.
+
+## Abort summary
+
+When the 3-attempt poll exhausts without a new Copilot review, do not
+silently exit. Print a structured summary so the user can decide the
+next move without re-deriving state:
+
+```
+ABORT: Copilot silent after 3 polls × 5 min (15 min total)
+
+What was tried in round $ROUND:
+  • Addressed $K threads ($J fixed / $((K-J)) pushed back)
+  • Pushed <sha7> to $BRANCH (tests green)
+  • Re-added copilot-pull-request-reviewer
+  • Polled review feed every 30s across three 5-min windows
+  • Latest Copilot review id stayed $LATEST_REVIEW_ID
+
+Last known PR state:
+  • https://github.com/$OWNER/$REPO/pull/$PR @ <sha7>
+  • Branch: $BRANCH
+  • Unresolved Copilot-authored threads: <count>
+
+Suggested next actions (pick one):
+  1. Re-trigger Copilot manually:
+       gh pr edit $PR --add-reviewer copilot-pull-request-reviewer
+  2. Request a human reviewer:
+       gh pr edit $PR --add-reviewer <username>
+  3. Re-run /pr-workflow:copilot-iterate later — pushed commits and
+     resolved threads persist across sessions.
+  4. Check Copilot service health: https://www.githubstatus.com/
+```
+
+The abort is **not a failure of the PR** — it is a failure of Copilot
+to respond in 15 minutes. The branch, the addressed threads, and the
+resolved-thread audit trail are intact; resuming later (or handing
+off to a human reviewer) is safe.
 
 ## Per-round log
 
@@ -296,7 +347,8 @@ converging — stop and surface to the user even before max-rounds.
   Papering over a hallucination teaches the loop to accept noise.
 - **Force-pushing to clean up the round.** Never. The review history is
   part of the audit trail; additive commits only.
-- **Naked `sleep 240`.** Use the `until` loop in **Polling pattern** —
-  long leading sleeps are blocked and break the prompt cache.
+- **Naked `sleep 300`.** Use the per-attempt `until` loop in **Polling
+  pattern** — long leading sleeps are blocked by the harness, and each
+  attempt's 5-min window must be paced with 30s polls inside the loop.
 - **Letting the loop run silent.** Print the per-round log every round
   so the user can interrupt if Copilot is not converging.
