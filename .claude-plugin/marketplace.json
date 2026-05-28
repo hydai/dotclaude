@@ -11,7 +11,7 @@
 {
       "name": "codereview",
       "source": "./plugins/codereview",
-      "description": "Code review commands with Linus Torvalds-style analysis"
+      "description": "Code review commands — Linus Torvalds-style analysis and a lean multi-agent PR review variant"
     },
     {
       "name": "design-system",

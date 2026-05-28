@@ -32,7 +32,7 @@ plugins/
 
 | Plugin | Components |
 |:-------|:-----------|
-| `codereview` | `linus` command |
+| `codereview` | `linus`, `lean-pr` commands |
 | `design-system` | `linear-dark` skill |
 | `release-automation` | `knope-rust` skill |
 | `testing` | `vision-verify` skill |

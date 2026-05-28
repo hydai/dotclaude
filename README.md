@@ -11,6 +11,7 @@ Code review commands with different personas and styles.
 | Component | Type | Description |
 |:----------|:-----|:------------|
 | `/codereview:linus` | Command | Linus Torvalds-style code review with language-aware analysis (C, C++, Rust, Go, docs) |
+| `/codereview:lean-pr` | Command | Lean multi-agent PR review — same 4-dimension coverage as official `/code-review` with ~50% fewer Sonnet tokens via mixed Sonnet+Haiku fan-out |
 
 ### design-system
 
