@@ -43,6 +43,7 @@ plugins/
 | `retro-tools` | `session-retro`, `post-mortem`, `second-opinion` skills |
 | `gtm-tools` | `gtm` skill |
 | `pr-workflow` | `copilot-iterate` skill |
+| `wasmedge` | `fedora-package-upgrade`, `epel-package-upgrade` skills |
 
 ## Adding a New Plugin
 

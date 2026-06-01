@@ -96,6 +96,15 @@ Skills for driving GitHub PR review workflows — Copilot iteration loops, threa
 |:----------|:-----|:------------|
 | `copilot-iterate` | Skill | Activates when the user says "iterate on Copilot review", "address Copilot feedback", "next round of Copilot", "drive PR to convergence", or `/copilot-iterate`. Runs an autonomous loop on an open PR: address each unresolved Copilot thread (fix or push-back), run tests, push, reply and resolve threads, re-add `copilot-pull-request-reviewer` (the only valid re-trigger), poll for the next review with a 10-minute deadline, then classify as CONVERGED (`"generated no new comments"`), ITERATE, or ABORT. Branch guard refuses `main`/`master`/`develop`; max 5 rounds before forced check-in. Repo-agnostic — auto-detects owner/repo/PR from the current branch. |
 
+### wasmedge
+
+Skills for maintaining WasmEdge as a downstream Fedora/RHEL package — Rawhide, stable branch, and EPEL releases.
+
+| Component | Type | Description |
+|:----------|:-----|:------------|
+| `fedora-package-upgrade` | Skill | Activates when releasing a new WasmEdge version into Fedora — editing `wasmedge.spec`, fetching/uploading the source tarball with `spectool`/`fedpkg`, building on Koji, and shipping Bodhi updates. Guides the maintainer through the fixed order (Rawhide first, then the stable f4x branches with manual updates); credentialed and interactive steps (Kerberos, SSH, `vim`, `git add -p`, `fedpkg push`/`build`/`update`) stay human-run. Generalized with maintainer placeholders. |
+| `epel-package-upgrade` | Skill | Activates when building WasmEdge for EPEL 8/9/10 on CentOS Stream. Covers the EPEL-specific deltas: per-version container setup (`powertools` vs `crb`, the Stream 8 `vault.centos.org` swap, the Stream 10 `epel-release` RPM), `request-branch`, the manual changelog where `%autorelease` is unavailable, and the always-manual Bodhi update. Reuses the Fedora skill's core build loop. |
+
 ## Installation
 
 Add this marketplace and install any plugin:
@@ -113,6 +122,7 @@ Add this marketplace and install any plugin:
 /plugin install retro-tools@dotclaude
 /plugin install gtm-tools@dotclaude
 /plugin install pr-workflow@dotclaude
+/plugin install wasmedge@dotclaude
 ```
 
 ## Adding a Plugin
