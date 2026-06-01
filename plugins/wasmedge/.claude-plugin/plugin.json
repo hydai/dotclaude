@@ -1,0 +1,5 @@
+{
+  "name": "wasmedge",
+  "description": "Skills for maintaining WasmEdge as a downstream Fedora/RHEL package — Rawhide, stable branch, and EPEL releases",
+  "version": "1.0.0"
+}

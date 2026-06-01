@@ -62,6 +62,11 @@
       "name": "pr-workflow",
       "source": "./plugins/pr-workflow",
       "description": "Skills for driving GitHub PR review workflows — Copilot iteration loops, thread bookkeeping"
+    },
+    {
+      "name": "wasmedge",
+      "source": "./plugins/wasmedge",
+      "description": "Skills for maintaining WasmEdge as a downstream Fedora/RHEL package — Rawhide, stable branch, and EPEL releases"
     }
   ]
 }
