@@ -22,8 +22,11 @@ login, SSH key handling, `vim` spec edits, `git add -p`, and every `fedpkg push`
 
 Fedora releases flow in one direction. Finish each stage before starting the next:
 
-1. **Rawhide first.** Only Rawhide auto-creates a Bodhi update after `fedpkg build`.
-2. **Stable branches (f4x)** — only after the Rawhide Bodhi update is submitted.
+1. **Rawhide first.** Rawhide auto-creates a Bodhi update after `fedpkg build`
+   **only for gated / critical-path packages**; non-gated packages (like wasmedge)
+   get no Rawhide Bodhi update — the **tagged Koji build** is what lands in the
+   compose, and is the gate for proceeding to the stable f4x branches.
+2. **Stable branches (f4x)** — only after the Rawhide build is tagged.
    Each stable branch needs a **manual** `fedpkg update`.
 3. **EPEL (8/9/10)** is a separate skill — `wasmedge:epel-package-upgrade` — done last.
 
@@ -42,8 +45,10 @@ load `references/environment-setup.md`.
 
 The canonical per-version loop: install BuildRequires, baseline `fedpkg local`,
 bump `Version:` in `wasmedge.spec`, `spectool -g` the new tarball, `fedpkg upload`
-it, rebuild, commit signed, `fedpkg push`, then `fedpkg build` on Koji. The Bodhi
-update is created automatically; download built RPMs with `bodhi updates download`.
+it, rebuild, commit signed, `fedpkg push`, then `fedpkg build` on Koji. A Bodhi
+update is created automatically **only for gated / critical-path packages**;
+non-gated packages (like wasmedge) get none — the **tagged Koji build** is the gate.
+Download built RPMs with `bodhi updates download`.
 Load `references/rawhide-release.md` — this is the reference both this skill and
 the EPEL skill reuse for the core loop.
 
@@ -57,8 +62,11 @@ Load `references/branched-release.md`.
 ### Step 4 — Track Koji and Bodhi
 
 Confirm the Koji build finished and a Bodhi update exists for each branch.
-Rawhide's is automatic; every stable branch is manual. Record the Bodhi update
-IDs (form `FEDORA-YYYY-xxxxxxxxxx`) for downloads and status checks.
+Rawhide auto-opens a Bodhi update **only for gated / critical-path packages**;
+non-gated packages (like wasmedge) get no Rawhide Bodhi update — the **tagged Koji
+build** is what lands in the compose, and is the gate for proceeding to the stable
+f4x branches. Every stable branch is manual. Record the Bodhi update IDs (form
+`FEDORA-YYYY-xxxxxxxxxx`) for downloads and status checks.
 
 ## Quick Reference
 
@@ -73,14 +81,14 @@ fedpkg upload WasmEdge-<x.y.z>-src.tar.gz   # push tarball to the lookaside cach
 fedpkg local                       # rebuild with the new source
 git add -p && git commit -s -m 'Release <x.y.z>'
 fedpkg push
-fedpkg build                       # Koji build (Rawhide auto-opens a Bodhi update)
+fedpkg build                       # Koji build (Rawhide auto-opens a Bodhi update only for gated pkgs; wasmedge: none)
 ```
 
 ### Release-order matrix
 
 | Stage | Branch | Bodhi update | Skill |
 |:------|:-------|:-------------|:------|
-| 1 | `rawhide` | automatic | this skill |
+| 1 | `rawhide` | automatic *(gated pkgs only; wasmedge: none)* | this skill |
 | 2 | `f41`, `f40`, … (live only) | manual `fedpkg update` | this skill |
 | 3 | `epel10`, `epel9`, `epel8` | manual | `wasmedge:epel-package-upgrade` |
 
@@ -92,7 +100,7 @@ bodhi updates download --updateid FEDORA-YYYY-xxxxxxxxxx
 
 ## Anti-Patterns
 
-- **Releasing a stable branch before Rawhide's Bodhi update is in.** Order is fixed:
+- **Releasing a stable branch before the Rawhide build is tagged.** Order is fixed:
   Rawhide → stable → EPEL.
 - **Expecting stable branches to auto-open a Bodhi update.** Only Rawhide does; f4x
   always needs a manual `fedpkg update` (type=enhancement).

@@ -15,8 +15,8 @@ description: >
 You are an EPEL packager guiding a WasmEdge maintainer through building for
 RHEL/CentOS via EPEL. EPEL reuses Fedora's core release loop, so this skill covers
 only the EPEL-specific differences: the CentOS Stream containers, repo enabling,
-the manual changelog, and the always-manual Bodhi update. You hand over exact
-commands; the maintainer runs the credentialed and interactive steps.
+the branch-dependent changelog, and the always-manual Bodhi update. You hand over
+exact commands; the maintainer runs the credentialed and interactive steps.
 
 ## Prerequisite
 
@@ -43,13 +43,24 @@ commands. Then do the Fedora maintainer setup (git identity, SSH key, `fkinit`,
 `fedpkg co wasmedge`) — `fedora-review` and `fedora-packager-kerberos` are missing
 on these images and that is expected.
 
-### Step 3 — Merge Rawhide and hand-write the changelog
+### Step 3 — Merge Rawhide and update the changelog
 
-EPEL does not support `%autorelease`/`%autochangelog`, so the changelog is manual:
+**Check the branch's existing spec first.** EPEL 9/10 **do** support
+`%autorelease`/`%autochangelog` — if the branch's spec uses them, treat it like a
+Fedora stable branch: the commit message *is* the changelog, so do not hand-write a
+`%changelog` entry:
 
 ```
 fedpkg switch-branch epel<N>
 git merge rawhide
+git add -p
+git commit -s -m 'Update to <version>'
+```
+
+Only fall back to a hand-written changelog when the branch's spec does **not** use
+`%autorelease`/`%autochangelog` (older epel8):
+
+```
 vim wasmedge.spec          # add a dated %changelog entry by hand (human step)
 git add -p
 git commit -s -m 'Update changelog'
@@ -66,6 +77,24 @@ Optionally `mock`-test the SRPM, then `fedpkg push`, `fedpkg build`, then a
 **manual** `fedpkg update`. EPEL never auto-opens a Bodhi update. If `fedpkg update`
 fails, add the update on the Bodhi web UI. Load `references/epel-gotchas.md`.
 
+### Step 5 — EPEL 10: also ship the minor-pinned `epel10.N` branches
+
+EPEL 10 uses a **rolling** `epel10` branch (builds against the latest RHEL 10 minor)
+**plus** minor-pinned `epel10.N` branches (e.g. `epel10.2`) for users on an
+older-but-still-supported RHEL 10 minor. A full EPEL 10 release may need **both**
+`epel10` and each live `epel10.N`. The dist tag (`.el10_3` vs `.el10_2`) is auto-set by
+`%autorelease` per branch, so you do not touch it.
+
+To bring a new version to a minor branch, merge from `epel10` (**not** rawhide) — same
+RHEL 10 LLVM family, so it is usually a clean (often fast-forward) merge, then build and
+ship as in Step 4:
+
+```
+fedpkg switch-branch epel10.N
+git merge epel10
+fedpkg push && fedpkg build && fedpkg update
+```
+
 ## Quick Reference
 
 ### Version → image → repo matrix
@@ -76,16 +105,24 @@ fails, add the update on the Bodhi web UI. Load `references/epel-gotchas.md`.
 | epel9 | `quay.io/centos/centos:stream9` | `crb` | `epel-release epel-next-release` |
 | epel10 | `quay.io/centos/centos:stream10` | `crb` | `epel-release-latest-10.noarch.rpm` (from a URL) |
 
+> EPEL 10 ships as a rolling `epel10` branch **plus** minor-pinned `epel10.N` branches
+> (e.g. `epel10.2`). Release to `epel10` and each live `epel10.N` (Step 5); the `.el10_N`
+> dist tag is auto-set per branch.
+
 ### EPEL deltas vs the Fedora loop
 
-- Changelog is **manual** (no `%autorelease`).
+- Changelog depends on the branch's spec: EPEL 9/10 use `%autorelease`/`%autochangelog`
+  (commit message = changelog, like a Fedora stable branch); only older epel8 may need a
+  **manual** `%changelog`. Check the spec first.
 - Bodhi update is **always manual** (`fedpkg update`, or the web UI).
 - `fedora-review` / `fedora-packager-kerberos` absent — expected, ignore.
 
 ## Anti-Patterns
 
-- **Using `%autorelease`/`%autochangelog` on EPEL.** Unsupported — write the
-  changelog by hand after `git merge rawhide`.
+- **Assuming all EPEL branches need a manual changelog.** EPEL 9/10 support
+  `%autorelease`/`%autochangelog` — there the commit message *is* the changelog. Only
+  a branch whose spec does not use them (older epel8) needs a hand-written `%changelog`.
+  Check the branch's spec before deciding.
 - **`crb` on EPEL 8, or `powertools` on EPEL 9/10.** Stream 8 uses `powertools`;
   Stream 9 and 10 use `crb`.
 - **Skipping the `vault.centos.org` swap on Stream 8.** CentOS 8 mirrors are EOL —
