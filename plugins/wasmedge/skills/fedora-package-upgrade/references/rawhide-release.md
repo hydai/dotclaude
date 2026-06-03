@@ -109,6 +109,11 @@ git commit -s -m 'Release <x.y.z>'
 fedpkg push
 ```
 
+> Running `fedpkg push` from inside a container? Its OIDC redirect lands on the
+> *host's* `localhost`, which can't reach the in-container listener — the push hangs.
+> Deliver the code with `docker exec <container> curl '<redirect URL>'`; see the EPEL
+> skill's `epel-gotchas.md` → OIDC localhost callback.
+
 ## 8. Build on Koji
 
 ```

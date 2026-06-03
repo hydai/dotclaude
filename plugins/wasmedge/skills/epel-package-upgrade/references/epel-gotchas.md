@@ -107,8 +107,39 @@ EPEL never auto-opens a Bodhi update. After a successful Koji build:
 fedpkg update      # type=enhancement (human step)
 ```
 
-If `fedpkg update` fails, create the update directly on the Bodhi web UI:
-https://bodhi.fedoraproject.org
+If `fedpkg update` fails, create the update on the Bodhi web UI instead:
+https://bodhi.fedoraproject.org/updates/new — enter the build NVR
+(`wasmedge-<x.y.z>-<rel>.el<N>`), set type=enhancement, add notes, Submit.
+
+On **EPEL 8 the web UI is mandatory, not a fallback**: Stream 8's `bodhi-client` is
+`< 6.0.0`, so `fedpkg update` aborts with `bodhi-client < 6.0.0 is not supported`,
+and el8 cannot provide 6.0+ (it needs Python 3.8+). The update is only an API call
+referencing the Koji build, so the web UI works fine — and it also sidesteps the
+OIDC callback issue below.
+
+## Containerized `fedpkg push` / `update`: the OIDC localhost callback
+
+`fedpkg push` (and CLI Bodhi auth) use OIDC: fedpkg starts a one-shot HTTP server on
+`127.0.0.1:<port>` **inside the container**, opens an authorization URL, and waits.
+After you approve in your **host** browser, Fedora redirects it to
+`http://localhost:<port>/?code=…` — but that is the *host's* loopback, and the port
+is not published into the container, so the code never reaches fedpkg and the command
+hangs.
+
+Deliver the code to the container's own loopback instead, from a second shell:
+
+```
+docker exec <container> curl -s '<the full http://localhost:PORT/?code=… the browser landed on>'
+```
+
+- The **port changes every run** — copy the whole URL from the browser address bar.
+- OIDC codes **expire in seconds** — stage the `docker exec` command before approving;
+  if it expired, re-run `fedpkg push`, approve, and deliver the fresh code immediately.
+- No `curl` in the image → `docker exec <container> python3 -c "import urllib.request;urllib.request.urlopen('<url>')"`.
+
+Root cause: OAuth's loopback redirect assumes the browser and the listener share one
+network namespace; a host browser with an in-container listener breaks that. (You could
+also run the container with `-p <port>:<port>`, but the port is unpredictable.)
 
 ## Dependency-version walls (system fmt / spdlog too old)
 
@@ -124,18 +155,32 @@ upstream. The build error names the missing header/symbol (e.g. a missing
 Do **not** rely on the project's `FetchContent` fallback to pull newer fmt/spdlog:
 Koji buildroots have **no network**, so that path only works locally.
 
-Rule of thumb: a small guard patch only works when the system lib is *one* major
-behind. When system fmt/spdlog is **several** majors behind, it is not enough —
-stay on the last buildable version. Two concrete outcomes from 0.17.0:
+Rule of thumb: the error *count* is misleading. What decides buildability is
+whether the breakage is **mechanical** — const-ness, formatter context type, a
+handful of missing `detail` symbols, all addressable with `#if`/`__has_include`
+guards and template-ization — or **semantic** (real API/behavior changes a guard
+cannot bridge). Triage the *kinds* of error, not the number; mechanical breakage
+is rescuable even **several** majors behind. Two outcomes from 0.17.0, both shipped:
 
 - **RHEL 9 — buildable with a small guard patch (shipped).** fmt 8.1.1 /
   spdlog 1.10. A ~2-file guard was enough: `#if FMT_VERSION >= 90000` around the
   int128 fmt block, plus an `__has_include(<spdlog/sinks/callback_sink.h>)`
   fallback that provides a small `callback_sink`. Built clean on Koji.
-- **RHEL 8 — too old; guard patch does NOT scale (stays on 0.14.0).** fmt 6.2.1 /
-  spdlog 1.5. A raw 0.17.0 build produced **375 fmt-6 errors** — not just the
-  int128 detail block but the int128 *formatter* template and the enum/type
-  formatters (`fmt::formatter<ValType|WasmPhase|ErrCode|…>`), whose fmt-6 API is
-  incompatible. This matches the scale of the branch's existing
-  `wasmedge-revert-fmt.patch` (~1664 lines). epel8 stays on the last buildable
-  version.
+- **RHEL 8 — fmt 6.2.1 / spdlog 1.5, extended guard (shipped 0.17.0).** A raw build
+  produced **375 fmt-6 errors**, but they were a few mechanical patterns repeated
+  across many formatters, not 375 distinct problems. Three guards on top of the
+  RHEL 9 patch took it 375 → 0:
+  1. `WASMEDGE_FMT_CONST` — `const` on `FMT_VERSION >= 80000`, empty otherwise
+     (fmt 8 made `formatter::format()` const-qualified).
+  2. **Template the formatter context** — swap the hard-coded
+     `fmt::format_context::iterator format(…, fmt::format_context &Ctx)` for
+     `template <typename FmtCtx> auto format(…, FmtCtx &Ctx) … -> decltype(Ctx.out())`
+     (fmt 6's `format_context` uses a different output-iterator type).
+  3. An fmt-6 `#else` `uint128` formatter (the fmt 9+ `dynamic_format_specs` path is
+     gone), plus `__has_include(<spdlog/fmt/ranges.h>)` → `<fmt/ranges.h>` (spdlog
+     1.5 lacks the bundled header).
+
+  ~127 lines over 13 files, **replacing** the branch's old 1664-line
+  `wasmedge-revert-fmt.patch`. Built on Koji (x86_64 + aarch64) and shipped to
+  EPEL 8. Every hunk is conditional, so it is also **upstreamable** — one PR makes
+  WasmEdge build fmt 6→11, after which EPEL 8/9 need no downstream patch.

@@ -75,7 +75,9 @@ re-edit `Version:` or re-upload the tarball.
 
 Optionally `mock`-test the SRPM, then `fedpkg push`, `fedpkg build`, then a
 **manual** `fedpkg update`. EPEL never auto-opens a Bodhi update. If `fedpkg update`
-fails, add the update on the Bodhi web UI. Load `references/epel-gotchas.md`.
+fails — **always on EPEL 8**, whose `bodhi-client < 6.0.0` rejects it — add the
+update on the Bodhi web UI. (Containerized `fedpkg push` may also hang on an OIDC
+localhost callback — see the gotchas.) Load `references/epel-gotchas.md`.
 
 ### Step 5 — EPEL 10: also ship the minor-pinned `epel10.N` branches
 
@@ -114,7 +116,8 @@ fedpkg push && fedpkg build && fedpkg update
 - Changelog depends on the branch's spec: EPEL 9/10 use `%autorelease`/`%autochangelog`
   (commit message = changelog, like a Fedora stable branch); only older epel8 may need a
   **manual** `%changelog`. Check the spec first.
-- Bodhi update is **always manual** (`fedpkg update`, or the web UI).
+- Bodhi update is **always manual** (`fedpkg update`, or the web UI). On **EPEL 8**
+  the web UI is **mandatory** — its `bodhi-client < 6.0.0` rejects `fedpkg update`.
 - `fedora-review` / `fedora-packager-kerberos` absent — expected, ignore.
 
 ## Anti-Patterns
@@ -131,13 +134,17 @@ fedpkg push && fedpkg build && fedpkg update
 - **Treating missing `fedora-review` as a failure.** It is not packaged for these
   images; you do not need it.
 - **Waiting for an automatic Bodhi update.** EPEL always needs a manual one.
+- **Reading a big fmt-6 / spdlog error count as "EPEL 8 can't take this release."**
+  Count ≠ difficulty — mechanical breakage (const-ness, formatter context type,
+  missing `detail` symbols) is guardable, and 0.17.0 shipped to EPEL 8 this way.
+  Triage the *kinds* of error first; see `references/epel-gotchas.md`.
 
 ## Reference Guide
 
 | File | Contains | Load When |
 |:-----|:---------|:----------|
 | `references/epel-environments.md` | Per-version CentOS Stream container + repo setup (8/9/10) | Bringing up a build container |
-| `references/epel-gotchas.md` | `request-branch`, manual changelog procedure, `fedpkg update` web-UI fallback | Releasing on any EPEL branch |
+| `references/epel-gotchas.md` | `request-branch`, changelog, spec/`%files` reconciliation, fmt/spdlog compat patches (incl. the EPEL 8 fmt-6 rescue), Bodhi web UI, OIDC localhost-callback fix | Releasing on any EPEL branch; dependency-version walls |
 
 > The shared "bump → build → ship" loop lives in the Fedora skill:
 > `wasmedge:fedora-package-upgrade` → `references/rawhide-release.md`.
