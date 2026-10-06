@@ -1,11 +1,13 @@
 ---
 name: epel-package-upgrade
 description: >
-  Use when building or releasing WasmEdge for EPEL (8, 9, or 10) on CentOS Stream
-  — requesting the EPEL branch, setting up the powertools/crb repos, hand-writing
-  the changelog where %autorelease is unavailable, and shipping a manual Bodhi
-  update. Activates on mentions of EPEL, epel8/epel9/epel10, CentOS Stream,
-  powertools, crb, request-branch, %autorelease on RHEL, or the WasmEdge EPEL build.
+  Use when building or releasing WasmEdge for EPEL (8, 9, or 10) — replaying the
+  Rawhide version bump onto the epel branches, mock-testing against the
+  centos-stream+epel chroots, hand-writing the changelog where the branch's spec has
+  no %autorelease, shipping a manual Bodhi update, and covering the epel10.N minor
+  branches. Activates on mentions of EPEL, epel8/epel9/epel10/epel10.N, CentOS
+  Stream, powertools, crb, request-branch, %autorelease on RHEL, RHEL buildroot
+  LLVM, or the WasmEdge EPEL build.
 ---
 
 # Upgrade WasmEdge — EPEL (8 / 9 / 10)
@@ -14,14 +16,17 @@ description: >
 
 You are an EPEL packager guiding a WasmEdge maintainer through building for
 RHEL/CentOS via EPEL. EPEL reuses Fedora's core release loop, so this skill covers
-only the EPEL-specific differences: the CentOS Stream containers, repo enabling,
-the branch-dependent changelog, and the always-manual Bodhi update. You hand over
-exact commands; the maintainer runs the credentialed and interactive steps.
+only the EPEL-specific differences: where to build, the diverged specs, the
+branch-dependent changelog, the always-manual Bodhi update, and the EPEL 10 minor
+branches. You hand over exact commands; the maintainer runs the credentialed and
+interactive steps.
 
 ## Prerequisite
 
 Do EPEL **last**, after the Fedora Rawhide and stable-branch releases are done
-(see `wasmedge:fedora-package-upgrade`). EPEL branches merge from `rawhide`.
+(see `wasmedge:fedora-package-upgrade`). EPEL branches do **not** merge from
+`rawhide` (they diverged: different LLVM, `ExclusiveArch`, changelog style); they
+replay the Rawhide bump by hand. Only `epel10.N` merges, from `epel10`.
 
 ## Workflow
 
@@ -34,124 +39,151 @@ fedpkg set-pagure-token <PAGURE_TOKEN>
 fedpkg request-branch --repo wasmedge epel<N>     # epel8 | epel9 | epel10
 ```
 
-### Step 2 — Bring up the right CentOS Stream container
+### Step 2 — Build from the Fedora rawhide container (default)
 
-Each EPEL version has a different base image and repo setup — Stream 8 needs the
-`vault.centos.org` swap and `powertools`; Stream 9/10 use `crb`; Stream 10 installs
-EPEL from an RPM URL. Load `references/epel-environments.md` for the exact per-version
-commands. Then do the Fedora maintainer setup (git identity, SSH key, `fkinit`,
-`fedpkg co wasmedge`) — `fedora-review` and `fedora-packager-kerberos` are missing
-on these images and that is expected.
+Stay in the `wasmedge-rawhide` container from the Fedora skill: it has the
+checkout, the Kerberos ticket, a current `bodhi-client`, and `mock-core-configs`
+with the EPEL chroots. Local tests are `fedpkg mockbuild`, not `fedpkg local`:
 
-### Step 3 — Merge Rawhide and update the changelog
+| Branch | mock config | Command |
+|:-------|:------------|:--------|
+| `epel10` | `epel-10-<arch>` (CentOS Stream 10 + EPEL, what Koji's `epel10.N-build` uses) | `fedpkg mockbuild` (auto-selected) |
+| `epel9` | `centos-stream+epel-9-<arch>` (no `epel-9-<arch>.cfg` exists) | `fedpkg mockbuild --root centos-stream+epel-9-<arch>` |
+| `epel8` | `centos-stream+epel-8-<arch>` — **stale**, see Step 4 | `fedpkg mockbuild --root centos-stream+epel-8-<arch>` |
+| `epel10.N` | none needed; same spec as `epel10` | skip, build on Koji |
 
-**Check the branch's existing spec first.** EPEL 9/10 **do** support
-`%autorelease`/`%autochangelog` — if the branch's spec uses them, treat it like a
-Fedora stable branch: the commit message *is* the changelog, so do not hand-write a
-`%changelog` entry:
+`<arch>` is the host arch (`aarch64` on Apple Silicon). The per-version CentOS
+Stream containers in `references/epel-environments.md` are the fallback when mock
+is unavailable; they bring their own traps (crb persistence, dnf ordering, EOL
+Stream 8 mirrors).
+
+### Step 3 — Replay the bump and the changelog
+
+**Check the branch's spec first** — the style differs per branch and is not what
+"EPEL supports rpmautospec" suggests:
 
 ```
 fedpkg switch-branch epel<N>
-git merge rawhide
-git add -p
-git commit -s -m 'Update to <version>'
+grep -nE 'autorelease|autochangelog|^Release:' wasmedge.spec
 ```
 
-Only fall back to a hand-written changelog when the branch's spec does **not** use
-`%autorelease`/`%autochangelog` (older epel8):
+- `Release: %autorelease` + `%autochangelog` (epel10, epel10.N): the commit message
+  is the changelog; commit as `Release <x.y.z>`.
+- Literal `Release: 1%{?dist}` + hand-maintained `%changelog` (epel9 **and** epel8
+  as of 0.18.0): add a dated entry; commit as `Update to <x.y.z>`.
+
+Then replay the Rawhide bump. The tarball is already in the lookaside (it is per
+package), so copy the metadata instead of re-uploading:
 
 ```
-vim wasmedge.spec          # add a dated %changelog entry by hand (human step)
-git add -p
-git commit -s -m 'Update changelog'
+sed -i 's/^%global version <old>$/%global version <x.y.z>/' wasmedge.spec
+# manual-changelog branches only (weekday must match the date):
+sed -i "/^%changelog$/a * $(date +'%a %b %d %Y') <MAINTAINER_NAME> <<MAINTAINER_EMAIL>> - <x.y.z>-1\n- Update to <x.y.z>\n" wasmedge.spec
+git checkout rawhide -- sources .gitignore
+diff <(git show rawhide:wasmedge.spec) wasmedge.spec     # reconcile; see gotchas
 ```
 
-Then run the canonical build loop from the `wasmedge:fedora-package-upgrade` skill
-(`references/rawhide-release.md`), picking up at the local build (`fedpkg local`).
-The merge already brought the version bump and lookaside metadata, so you do not
-re-edit `Version:` or re-upload the tarball.
+Reconcile the body against rawhide: **keep** the platform lines (LLVM major in
+`BuildRequires`/`Requires`, `-DLLVM_DIR=`, `ExclusiveArch`, `gcc-toolset` lines,
+legacy `License:` string), **port** everything else, including the
+`references/spec-hygiene.md` commits Rawhide made this release. Then
+`fedpkg mockbuild` per Step 2, `git add -p`, commit signed, `fedpkg push`.
 
 ### Step 4 — Build and ship a manual update
 
-Optionally `mock`-test the SRPM, then `fedpkg push`, `fedpkg build`, then a
-**manual** `fedpkg update`. EPEL never auto-opens a Bodhi update. If `fedpkg update`
-fails — **always on EPEL 8**, whose `bodhi-client < 6.0.0` rejects it — add the
-update on the Bodhi web UI. (Containerized `fedpkg push` may also hang on an OIDC
-localhost callback — see the gotchas.) Load `references/epel-gotchas.md`.
+```
+fedpkg build
+fedpkg verrel                                          # wasmedge-<x.y.z>-1.el<N>
+fedpkg update --type enhancement --notes 'Update to <x.y.z>'
+```
+
+EPEL never auto-opens a Bodhi update. `fedpkg update` works for **every** EPEL
+branch from the rawhide container; the "web UI mandatory on EPEL 8" rule only
+applies when running a Stream 8 container whose `bodhi-client < 6.0.0` rejects the
+command. Transient failures (`RemoteDisconnected`, a push denied with
+`Unspecified ref refs/heads/epel<N> is blocked`): confirm nothing was created
+(`bodhi updates query --builds <nvr>`), then retry once.
+
+**EPEL 8 mock is stale.** The `centos-stream+epel-8` chroot is the EOL CentOS
+Stream 8 snapshot (LLVM 17.0.6), but Koji builds epel8 against RHEL 8.10, which
+carried LLVM 21 in 2026. A Stream 8 mock failure that is an LLVM API error
+(`LLVMSetTailCallKind` not declared, 0.18.0) is a false negative: push and build
+on Koji. Check the real buildroot with the previous build:
+`koji rpminfo wasmedge-<prev>-1.el8.x86_64 | grep Buildroot` then
+`koji list-buildroot <id> | grep -E '^(llvm|lld|gcc-toolset)'`.
+
+Load `references/epel-gotchas.md` for the full list.
 
 ### Step 5 — EPEL 10: also ship the minor-pinned `epel10.N` branches
 
-EPEL 10 uses a **rolling** `epel10` branch (builds against the latest RHEL 10 minor)
-**plus** minor-pinned `epel10.N` branches (e.g. `epel10.2`) for users on an
-older-but-still-supported RHEL 10 minor. A full EPEL 10 release may need **both**
-`epel10` and each live `epel10.N`. The dist tag (`.el10_3` vs `.el10_2`) is auto-set by
-`%autorelease` per branch, so you do not touch it.
+EPEL 10 uses a **rolling** `epel10` branch (builds against CentOS Stream 10, dist
+tag `.el10_<next minor>`) **plus** minor-pinned `epel10.N` branches (`epel10.2`,
+`epel10.3` in October 2026) for users on an older, still-supported RHEL 10 minor.
+Ship to `epel10` and to every `epel10.N` that Bodhi lists as `current`
+(`bodhi releases list`). The dist tag is set by `%autorelease` per branch.
 
-To bring a new version to a minor branch, merge from `epel10` (**not** rawhide) — same
-RHEL 10 LLVM family, so it is usually a clean (often fast-forward) merge, then build and
-ship as in Step 4:
+Minor branches merge from `epel10` (**not** rawhide) — a fast-forward once
+`epel10` is pushed:
 
 ```
 fedpkg switch-branch epel10.N
 git merge epel10
-fedpkg push && fedpkg build && fedpkg update
+fedpkg push && fedpkg build && fedpkg verrel
+fedpkg update --type enhancement --notes 'Release <x.y.z>'
 ```
 
 ## Quick Reference
 
-### Version → image → repo matrix
+### Branch → buildroot → spec style (wasmedge, 2026)
 
-| EPEL | Base image | Enable repo | EPEL release packages |
-|:-----|:-----------|:------------|:----------------------|
-| epel8 | `quay.io/centos/centos:stream8` | `powertools` (+ `vault.centos.org` swap) | `epel-release epel-next-release glibc-langpack-en` |
-| epel9 | `quay.io/centos/centos:stream9` | `crb` | `epel-release epel-next-release` |
-| epel10 | `quay.io/centos/centos:stream10` | `crb` | `epel-release-latest-10.noarch.rpm` (from a URL) |
-
-> EPEL 10 ships as a rolling `epel10` branch **plus** minor-pinned `epel10.N` branches
-> (e.g. `epel10.2`). Release to `epel10` and each live `epel10.N` (Step 5); the `.el10_N`
-> dist tag is auto-set per branch.
+| Branch | Koji buildroot | Spec style | LLVM |
+|:-------|:---------------|:-----------|:-----|
+| `epel10` | CentOS Stream 10 (`epel10.N-build`, N = next minor) | `%autorelease` | `llvm19` compat from EPEL 10 itself |
+| `epel10.N` | RHEL 10.N / Stream snapshot | `%autorelease` | same |
+| `epel9` | RHEL 9 | literal Release + manual changelog | system `llvm-devel` |
+| `epel8` | RHEL 8.10 | literal Release + manual changelog + `gcc-toolset-11` | system `llvm-devel` (21 in 2026) |
 
 ### EPEL deltas vs the Fedora loop
 
-- Changelog depends on the branch's spec: EPEL 9/10 use `%autorelease`/`%autochangelog`
-  (commit message = changelog, like a Fedora stable branch); only older epel8 may need a
-  **manual** `%changelog`. Check the spec first.
-- Bodhi update is **always manual** (`fedpkg update`, or the web UI). On **EPEL 8**
-  the web UI is **mandatory** — its `bodhi-client < 6.0.0` rejects `fedpkg update`.
-- `fedora-review` / `fedora-packager-kerberos` absent — expected, ignore.
+- No `git merge rawhide`: version sed + `git checkout rawhide -- sources .gitignore`
+  + reconcile diff.
+- Changelog per branch style (above). `%autochangelog` reads the commit message.
+- Bodhi update is **always manual** (`fedpkg update --type enhancement --notes`).
+- Local test is mock from the rawhide container; Stream 8 results are advisory.
+- `fedora-review` / `fedora-packager-kerberos` absent on Stream images — expected.
 
 ## Anti-Patterns
 
-- **Assuming all EPEL branches need a manual changelog.** EPEL 9/10 support
-  `%autorelease`/`%autochangelog` — there the commit message *is* the changelog. Only
-  a branch whose spec does not use them (older epel8) needs a hand-written `%changelog`.
-  Check the branch's spec before deciding.
+- **`git merge rawhide` on an EPEL branch.** Conflicts in all three files
+  (verified 2026-10-06 on every EPEL branch); one slip on an LLVM line → unbuildable.
+- **Assuming epel9 uses `%autorelease` because EPEL 9 supports it.** The wasmedge
+  epel9 spec is literal `Release:` + hand-written changelog, like epel8. grep first.
+- **Trusting a Stream 8 mock failure.** The chroot is two years behind RHEL 8.10.
+- **Starting CentOS Stream containers by default.** mock from the rawhide container
+  covers epel9/epel10 faithfully and needs no extra setup.
+- **Bundling `epel-release` with an EPEL-only package** (`rpmautospec`,
+  `fedora-packager`) in one `dnf install` when you do use a Stream container. `dnf`
+  resolves every argument against the *currently* enabled repos, so it fails with
+  `No match for argument: rpmautospec` and installs **nothing, including
+  `epel-release`**. Enable EPEL in its own transaction first.
 - **`crb` on EPEL 8, or `powertools` on EPEL 9/10.** Stream 8 uses `powertools`;
   Stream 9 and 10 use `crb`.
-- **Bundling `epel-release` with an EPEL-only package** (`rpmautospec`,
-  `fedora-packager`) in one `dnf install`. `dnf` resolves every argument against the
-  *currently* enabled repos before installing anything, and EPEL is not enabled yet —
-  so it fails with `No match for argument: rpmautospec` and installs **nothing,
-  including `epel-release`**. Enable EPEL in its own transaction first
-  (`dnf install -y epel-release epel-next-release`), then install the EPEL-only tools.
-  Bites on EPEL 9 setup; EPEL 10 already splits the two.
-- **Skipping the `vault.centos.org` swap on Stream 8.** CentOS 8 mirrors are EOL —
-  the default `mirrorlist` URLs are dead.
+- **Skipping the `vault.centos.org` swap on Stream 8.** CentOS 8 mirrors are EOL.
 - **Adding `epel-next-release` on EPEL 10.** Use the `epel-release-latest-10` RPM.
-- **Treating missing `fedora-review` as a failure.** It is not packaged for these
-  images; you do not need it.
 - **Waiting for an automatic Bodhi update.** EPEL always needs a manual one.
 - **Reading a big fmt-6 / spdlog error count as "EPEL 8 can't take this release."**
   Count ≠ difficulty — mechanical breakage (const-ness, formatter context type,
-  missing `detail` symbols) is guardable, and 0.17.0 shipped to EPEL 8 this way.
+  missing `detail` symbols) is guardable, and 0.17.0 shipped to EPEL 8 this way;
+  since 0.17.1 the guards are upstream and no patch is needed.
   Triage the *kinds* of error first; see `references/epel-gotchas.md`.
 
 ## Reference Guide
 
 | File | Contains | Load When |
 |:-----|:---------|:----------|
-| `references/epel-environments.md` | Per-version CentOS Stream container + repo setup (8/9/10) | Bringing up a build container |
-| `references/epel-gotchas.md` | `request-branch`, changelog, spec/`%files` reconciliation, fmt/spdlog compat patches (incl. the EPEL 8 fmt-6 rescue), Bodhi web UI, OIDC localhost-callback fix | Releasing on any EPEL branch; dependency-version walls |
+| `references/epel-gotchas.md` | Changelog per branch, spec reconciliation, mock from the rawhide container and the Stream 8 staleness, LLVM floor of a release, transient Bodhi/dist-git errors, OIDC localhost-callback fix, fmt/spdlog compat history | Releasing on any EPEL branch |
+| `references/epel-environments.md` | Fallback per-version CentOS Stream container + repo setup (8/9/10) | Only when mock cannot be used |
+| `wasmedge:fedora-package-upgrade` → `references/spec-hygiene.md` | The checks beyond the version line | Replaying the Rawhide commits onto an EPEL spec |
 
 > The shared "bump → build → ship" loop lives in the Fedora skill:
 > `wasmedge:fedora-package-upgrade` → `references/rawhide-release.md`.
