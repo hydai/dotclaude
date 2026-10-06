@@ -128,6 +128,13 @@ fedpkg push && fedpkg build && fedpkg update
   Check the branch's spec before deciding.
 - **`crb` on EPEL 8, or `powertools` on EPEL 9/10.** Stream 8 uses `powertools`;
   Stream 9 and 10 use `crb`.
+- **Bundling `epel-release` with an EPEL-only package** (`rpmautospec`,
+  `fedora-packager`) in one `dnf install`. `dnf` resolves every argument against the
+  *currently* enabled repos before installing anything, and EPEL is not enabled yet —
+  so it fails with `No match for argument: rpmautospec` and installs **nothing,
+  including `epel-release`**. Enable EPEL in its own transaction first
+  (`dnf install -y epel-release epel-next-release`), then install the EPEL-only tools.
+  Bites on EPEL 9 setup; EPEL 10 already splits the two.
 - **Skipping the `vault.centos.org` swap on Stream 8.** CentOS 8 mirrors are EOL —
   the default `mirrorlist` URLs are dead.
 - **Adding `epel-next-release` on EPEL 10.** Use the `epel-release-latest-10` RPM.

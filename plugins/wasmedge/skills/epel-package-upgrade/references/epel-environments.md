@@ -64,7 +64,12 @@ docker run -it --rm --privileged --name wasmedge-epel9 -h wasmedge-epel9 quay.io
 dnf install -y 'dnf-command(config-manager)'
 dnf config-manager --set-enabled crb
 dnf repolist | grep -iE 'crb|powertools|epel'   # VERIFY crb actually enabled
-dnf install -y epel-release epel-next-release rpmautospec
+# epel-release MUST be installed BEFORE any EPEL-only package. dnf resolves every
+# argument against the currently-enabled repos up front, so bundling the EPEL-only
+# rpmautospec here fails ("No match for argument: rpmautospec") and aborts the whole
+# transaction -- epel-release included. Enable EPEL first, then install from it.
+dnf install -y epel-release epel-next-release
+dnf install -y rpmautospec
 ```
 
 `ninja-build` (and other build tools) come from **crb**, so it is mandatory. If
