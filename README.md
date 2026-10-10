@@ -94,7 +94,7 @@ Skills for driving GitHub PR review workflows — Copilot iteration loops, threa
 
 | Component | Type | Description |
 |:----------|:-----|:------------|
-| `copilot-iterate` | Skill | Activates when the user says "iterate on Copilot review", "address Copilot feedback", "next round of Copilot", "drive PR to convergence", or `/copilot-iterate`. Runs an autonomous loop on an open PR: address each unresolved Copilot thread (fix or push-back), run tests, push, reply and resolve threads, re-add `copilot-pull-request-reviewer` (the only valid re-trigger), poll for the next review with a 10-minute deadline, then classify as CONVERGED (`"generated no new comments"` or `"0 open findings"`), ITERATE, or ABORT. Branch guard refuses `main`/`master`/`develop`; max 5 rounds before forced check-in. Repo-agnostic — auto-detects owner/repo/PR from the current branch. |
+| `copilot-iterate` | Skill | Activates when the user says "iterate on Copilot review", "address Copilot feedback", "next round of Copilot", "drive PR to convergence", or `/copilot-iterate`. Runs an autonomous loop on an open PR: address each unresolved Copilot thread (fix or push-back), run tests, push, reply and resolve threads, re-add `copilot-pull-request-reviewer` (the only valid re-trigger), poll for the next review (up to 3 attempts × 5 min), then classify as CONVERGED (`"generated no new comments"` or `"0 open findings"`), ITERATE, or ABORT. Branch guard refuses `main`/`master`/`develop`; max 5 rounds before forced check-in. Repo-agnostic — auto-detects owner/repo/PR from the current branch. |
 
 ### wasmedge
 
