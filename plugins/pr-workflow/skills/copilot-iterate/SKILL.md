@@ -3,8 +3,9 @@ name: copilot-iterate
 description: >
   Drive a GitHub pull request to convergence by repeatedly addressing
   Copilot review feedback, pushing fixes, re-triggering the reviewer, and
-  detecting the literal "generated no new comments" summary as the stop
-  signal. Use when the user says /copilot-iterate,
+  detecting Copilot's zero-new-findings summary ("generated no new
+  comments" or "0 open findings") as the stop signal. Use when the user
+  says /copilot-iterate,
   /pr-workflow:copilot-iterate, "iterate on Copilot review", "address
   Copilot feedback", "next round of Copilot", "drive this PR to
   convergence", "loop on Copilot until merge", or "respond to Copilot
@@ -14,15 +15,16 @@ description: >
   branch.
 ---
 
-# Copilot Iterate — Drive a PR to "no new comments" via repeated Copilot review
+# Copilot Iterate — Drive a PR to zero new findings via repeated Copilot review
 
 ## Why this matters
 
 GitHub's Copilot reviewer does not re-review on subsequent pushes. The
 only trigger for a fresh review is **re-adding**
-`copilot-pull-request-reviewer` to the PR. Convergence is signalled by a
-literal phrase in the review summary — `"generated no new comments"` —
-and missing the phrase means the PR is still being iterated. The loop is
+`copilot-pull-request-reviewer` to the PR. Convergence is signalled by the
+review summary reporting zero new findings: `"generated no new comments"`
+or `"0 open findings"`, depending on which of Copilot's two summary
+formats it uses (see **Convergence**). The loop is
 mechanical but easy to get wrong: passing the display name `Copilot`
 instead of the slug 404s silently (gh lowercases the input before
 lookup), and resolving a thread without addressing it erodes the next
@@ -210,9 +212,22 @@ but is not success.
 
 | State | Condition | Action |
 |:------|:----------|:-------|
-| **CONVERGED** | Latest Copilot review `bodyText` contains `"generated no new comments"` **AND** 0 unresolved Copilot-authored threads | Stop. Print the review URL and "merge-ready". |
-| **ITERATE** | Any unresolved Copilot-authored thread, **OR** body contains `"generated"` with a positive comment count | Start the next round at step 1. |
-| **ABORT** | Body contains `"reviewed 0 of M files"`, `"No files were reviewed"`, an error string, **OR** the 3-attempt poll exhausted (15 min) | Stop. For the poll-exhaustion case, print the **Abort summary**; for other causes, print PR URL + last review id + the matched cause. Hand back to the user. |
+| **CONVERGED** | 0 unresolved Copilot-authored threads **AND** the latest Copilot review's `bodyText` reports zero new findings: `"generated no new comments"` (classic) or `"0 open findings"` (overview) | Stop. Print the review URL and "merge-ready". |
+| **ITERATE** | Any unresolved Copilot-authored thread, **OR** `bodyText` reports new findings: `"generated N comment(s)"` or `"N open finding(s)"` with N > 0 | Start the next round at step 1. |
+| **ABORT** | `bodyText` contains `"reviewed 0 of M files"`, `"No files were reviewed"`, or an error string; **OR** it matches neither summary format below; **OR** the 3-attempt poll exhausted (15 min) | Stop. For the poll-exhaustion case, print the **Abort summary**; for other causes, print PR URL + last review id + the matched cause. Hand back to the user. |
+
+Copilot writes its summary in one of two formats. Read the finding
+count, not the verdict wording:
+
+- **Classic**: `Copilot reviewed X out of Y changed files in this pull
+  request and generated N comments` (`generated no new comments` when
+  N = 0).
+- **Overview**: a verdict line (`🟢 Approval recommended`, `🟡 Changes
+  recommended`) followed by `N open findings`. A line `N resolved since
+  last review` counts no open findings.
+
+A body that matches neither format means Copilot changed its summary
+again. ABORT and show the user the body instead of guessing a state.
 
 Match on `bodyText` (not `body`) — `bodyText` is the rendered plain
 text and avoids markdown splitting the trigger phrase across nodes.
